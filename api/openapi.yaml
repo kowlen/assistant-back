@@ -1,0 +1,313 @@
+openapi: 3.0.3
+info:
+  title: Цифровой Навигатор
+  description: Цифровой помощник отсеживающий прогресс публикации проекта от регистрации
+    Руководителя
+  version: 1.0.0
+servers:
+- url: /
+paths:
+  /user:
+    get:
+      description: search user with uri
+      operationId: userGET
+      parameters:
+      - name: user_uri
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            integer:
+              schema:
+                type: integer
+                description: user ID
+                x-content-type: integer
+        "404":
+          description: User not found!
+          content:
+            text:
+              schema:
+                type: string
+                example: User not found
+                x-content-type: text
+      x-swagger-router-controller: Default
+    put:
+      description: Edit user data
+      operationId: userPUT
+      parameters:
+      - name: user_ID
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      - name: replace_uri
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+      x-swagger-router-controller: Default
+    post:
+      description: "Register new user in system, throw exeption if uri is registered"
+      operationId: userPOST
+      parameters:
+      - name: user_uri
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: integer
+                description: user ID
+                x-content-type: application/json
+        "400":
+          description: uri is registered!
+          content:
+            text:
+              schema:
+                type: string
+                example: URI is registered!
+                x-content-type: text
+      x-swagger-router-controller: Default
+  /guides:
+    get:
+      description: return user guides list
+      operationId: guidesGET
+      parameters:
+      - name: user_ID
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/guide'
+                x-content-type: application/json
+      x-swagger-router-controller: Default
+  /guides/general:
+    get:
+      description: return general guides list
+      operationId: guidesGeneralGET
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/guide'
+                x-content-type: application/json
+      x-swagger-router-controller: Default
+  /guide/{guide_id}:
+    get:
+      description: return guide info
+      operationId: guideGuide_idGET
+      parameters:
+      - name: guide_id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      - name: user_id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/guide'
+      x-swagger-router-controller: Default
+    put:
+      description: edit guide progress
+      operationId: guideGuide_idPUT
+      parameters:
+      - name: guide_id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      - name: replace_curent_step
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      - name: complit_steps
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: array
+          items:
+            type: integer
+      responses:
+        "200":
+          description: OK
+      x-swagger-router-controller: Default
+  /guide/{guide_id}/steps:
+    get:
+      description: return guide steps
+      operationId: guideGuide_idStepsGET
+      parameters:
+      - name: guide_id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      - name: user_id
+        in: header
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/step'
+                x-content-type: application/json
+      x-swagger-router-controller: Default
+  /file/{file_uri}:
+    get:
+      description: return file with uri
+      operationId: fileFile_uriGET
+      parameters:
+      - name: file_uri
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            file:
+              schema:
+                type: string
+                format: binary
+                example: !!binary |-
+                  MTAxMV8wMTAwIDAxMTFfMTAxMA==
+                x-content-type: file
+      x-swagger-router-controller: Default
+components:
+  schemas:
+    user:
+      properties:
+        id:
+          type: integer
+        uri:
+          uniqueItems: true
+          type: string
+      description: an service user
+    chapter:
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+      description: list of steps
+    guide:
+      properties:
+        id:
+          type: integer
+        chapter_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        rekomended_guides_id:
+          type: array
+          items:
+            type: integer
+        complited_by_user:
+          type: boolean
+        curent_step:
+          type: integer
+      description: list of steps
+      example:
+        rekomended_guides_id:
+        - 1
+        - 1
+        curent_step: 5
+        complited_by_user: true
+        description: description
+        id: 0
+        chapter_id: 6
+        title: title
+    step:
+      properties:
+        id:
+          type: integer
+        section_id:
+          type: integer
+        content:
+          type: string
+          format: json
+        complited:
+          type: boolean
+      description: "guide 'step', simple instruction"
+      example:
+        section_id: 6
+        complited: true
+        id: 0
+        content: content
+    file:
+      properties:
+        uri:
+          type: string
+        title:
+          type: string
+        data:
+          type: string
+          format: binary
+      description: file bytes
